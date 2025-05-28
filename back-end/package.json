@@ -1,0 +1,15 @@
+{
+  "name": "gerenciador_tarefas-api",
+  "version": "1.0.0",
+  "description": "API for Gerenciador de Tarefas application",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.14.1"
+  }
+}
