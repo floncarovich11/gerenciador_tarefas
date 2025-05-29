@@ -1,9 +1,10 @@
 const db = require('../config/db.js');
 
 exports.createTarefa = (req, res) => {
-    const { usuario_id, descricao, setor, prioridade, data_cadastro, status} = req.body;
+    const { usuario_id, descricao, setor, prioridade, data_cadastro } = req.body;
+    const status = 'A fazer'; // ✅ Define fixamente aqui
 
-    if (!usuario_id || !descricao || !setor || !prioridade || !data_cadastro || !status) {
+    if (!usuario_id || !descricao || !setor || !prioridade || !data_cadastro) {
         return res.status(400).send({ err: 'Todos os campos são obrigatórios.' });
     }
 
@@ -12,7 +13,9 @@ exports.createTarefa = (req, res) => {
         [usuario_id, descricao, setor, prioridade, data_cadastro, status], 
         (err) => {
             if (err) return res.status(500).send(err);
-            res.status(201).send({ message: 'Tarefa criada com sucesso.' });
+            res.status(201).send({ message: 'Tarefa criada com sucesso.',
+                tarefa: { usuario_id, descricao, setor, prioridade, data_cadastro, status }
+             });
         }
     );
 }
@@ -25,8 +28,8 @@ exports.getTarefas = (req, res) => {
     db.query(
         'SELECT * FROM tarefas WHERE usuario_id = ? ORDER BY data_cadastro DESC',
         [usuario_id],
-        (error, results) => {
-            if (error) return res.status(500).send(error);
+        (err, results) => {
+            if (err) return res.status(500).send(err);
             res.status(200).send(results);
         }
     );
@@ -59,8 +62,8 @@ exports.deleteTarefa = (req, res) => {
     db.query(
         'DELETE FROM tarefas WHERE id = ?',
         [id],
-        (error) => {
-            if (error) return res.status(500).send(err);
+        (err) => {
+            if (err) return res.status(500).send(err);
             res.status(200).send({ message: 'Tarefa deletada com sucesso.' });
         }
     );
@@ -76,8 +79,8 @@ exports.getTarefaById = (req, res) => {
     db.query(
         'SELECT * FROM tarefas WHERE id = ?',
         [id],
-        (error, results) => {
-            if (error) return res.status(500).send(error);
+        (err, results) => {
+            if (err) return res.status(500).send(err);
             if (results.length === 0) {
                 return res.status(404).send({ message: 'Tarefa não encontrada.' });
             }

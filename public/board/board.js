@@ -1,62 +1,72 @@
-const  columns = document.querySelectorAll('.column_cards');
+import { criarTarefa, listarTarefas, editarTarefa, buscarTarefaPorId, deletarTarefa } from "../api/tarefaApi.js"; // ajuste o caminho conforme seu projeto
 
-let draggedCard;
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAdicionarTarefa = document.getElementById("btnAdicionarTarefa");
+  const modalAdicionar = document.getElementById("modalAdicionar");
+  const btnFecharModal = modalAdicionar.querySelector(".fechar");
+  const form = document.getElementById("criarTarefaForm");
 
-const dragStart = (event) => {
-    draggedCard = event.target;
-    event.dataTransfer.effectAllowed = "move";
-};
+  btnAdicionarTarefa.addEventListener("click", () => {
+    modalAdicionar.style.display = "block";
+  });
 
-const dragOver = (event) => {
+  btnFecharModal.addEventListener("click", () => {
+    modalAdicionar.style.display = "none";
+  });
+
+  window.addEventListener("click", (event) => {
+    if (event.target === modalAdicionar) {
+      modalAdicionar.style.display = "none";
+    }
+  });
+
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
-};
 
-const dragEnter = ({target}) => {
-    if(target.classList.contains('column_cards')) {
-        target.classList.add('column_hightlight');
+    const usuario_id = localStorage.getItem("usuario_id"); // Recupera o usuario_id do localStorage
+    const descricao = document.getElementById("inputDescricao").value.trim();
+    const setor = document.getElementById("inputSetor").value.trim();
+    const prioridade = document.getElementById("inputPrioridade").value.trim();
+    const data_cadastro = new Date().toISOString().split("T")[0];
+
+    if (!usuario_id) {
+      alert("Erro: ID do usuário não encontrado. Faça login novamente.");
+      return;
     }
-};
 
-const dragLeave = ({target}) => {
-    target.classList.remove('column_hightlight');
-};
-
-const drop = ({target}) => {
-    if(target.classList.contains('column_cards')){
-        target.classList.remove('column_hightlight');
-        target.append(draggedCard);
+    if (!descricao || !setor || !prioridade) {
+      alert("Todos os campos são obrigatórios.");
+      return;
     }
- 
-};
 
-const createCard = ({ target }) => {
-    if (!target.classList.contains('column_cards')) return;
+    try {
+      console.log("Dados da tarefa a serem criados:", {
+        usuario_id,
+        descricao,
+        setor,
+        prioridade,
+        data_cadastro,
+      }
+      )
+      const novaTarefa = await criarTarefa({
+        usuario_id,
+        descricao,
+        setor,
+        prioridade,
+        data_cadastro,
+      });
 
-    const card = document.createElement('section');
+      alert("Tarefa criada com sucesso!");
+      modalAdicionar.style.display = "none";
 
-    card.className = 'card';
-    card.draggable = true;
-    card.contentEditable = true;
+      // Atualize a lista de tarefas conforme necessário
+      listarTarefas(usuario_id);
 
-    card.addEventListener('focusout', () => {
-        card.contentEditable = false;
-
-        if(!card.textContent) card.remove();
-    });
-
-    card.addEventListener('dragstart', dragStart);
-
-    target.append(card);
-    card.focus();
-}
-
-columns.forEach((column) => {
-    column.addEventListener("dragover", dragOver)
-    column.addEventListener("dragenter", dragEnter) 
-    column.addEventListener("dragleave", dragLeave)
-    column.addEventListener("drop", drop)
-    column.addEventListener("dblclick", createCard)
+    } catch (error) {
+      console.error("Erro ao criar tarefa:", error);
+      alert("Ocorreu um erro ao tentar criar a tarefa.");
+    }
+  });
 });
 
 
- 
