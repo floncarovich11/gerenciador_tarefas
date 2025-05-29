@@ -44,38 +44,45 @@
       </div>
     </div>
 
+    <!-- Modal de Editar Tarefa -->
+    <div id="modalEditar" class="modal">
+      <div class="modal-content">
+        <span class="fechar-editar">&times;</span>
+        <h2>Editar Tarefa</h2>
+        <form id="editarTarefaForm">
+          <input type="hidden" id="editarId" />
+          <label for="editarDescricao">Descrição:</label>
+          <input type="text" id="editarDescricao" required />
 
-    <!-- Lista de Tarefas -->
-    <section class="card_list">
-      <div class="card">
-        <p><strong>Descrição:</strong></p>
-        <p class="descricao">Corrigir layout da página de login</p>
+          <label for="editarSetor">Setor:</label>
+          <input type="text" id="editarSetor" required />
 
-        <p><strong>Setor:</strong></p>
-        <p class="setor">Design</p>
-
-        <p><strong>Data de Cadastro:</strong> 2025-05-29</p>
-
-        <label><strong>Prioridade:</strong>
-          <select>
+          <label for="editarPrioridade">Prioridade:</label>
+          <select id="editarPrioridade" required>
             <option value="baixa">Baixa</option>
             <option value="media">Média</option>
-            <option value="alta" selected>Alta</option>
+            <option value="alta">Alta</option>
           </select>
-        </label>
 
-        <label><strong>Status:</strong>
-          <select>
-            <option value="aFazer" selected>A fazer</option>
+          <label for="editarStatus">Status:</label>
+          <select id="editarStatus" required>
+            <option value="aFazer">A fazer</option>
             <option value="fazendo">Fazendo</option>
             <option value="pronto">Pronto</option>
           </select>
-        </label>
+
+          <button type="submit">Salvar Alterações</button>
+        </form>
       </div>
+    </div>
+
+    <!-- Lista de Tarefas -->
+    <section class="card_list">
     </section>
+
   </main>
 
-  <script type="module" src="board.js"></script>
+  <script type="module" src="board.js" defer></script>
 </body>
 
 </html>

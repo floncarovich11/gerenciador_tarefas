@@ -21,7 +21,7 @@ exports.createTarefa = (req, res) => {
 }
 
 exports.getTarefas = (req, res) => {
-    const { usuario_id } = req.body;
+    const { usuario_id } = req.query;
     if (!usuario_id) {
         return res.status(400).send({ err: 'ID do usuário é obrigatório.' });
     }
@@ -42,11 +42,19 @@ exports.updateTarefa = (req, res) => {
         return res.status(400).send({ err: 'Todos os campos são obrigatórios.' });
     }
 
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+        return res.status(400).send({ err: 'ID da tarefa inválido.' });
+    }
+
     db.query(
-        'UPDATE tarefas SET descricao = ?, setor = ?, prioridade = ?, data_cadastro = ?, status = ?',
-        [descricao, setor, prioridade, data_cadastro, status, req.params.id],
-        (err) => {
+        'UPDATE tarefas SET descricao = ?, setor = ?, prioridade = ?, data_cadastro = ?, status = ? WHERE id = ?',
+        [descricao, setor, prioridade, data_cadastro, status, id],
+        (err, result) => {
             if (err) return res.status(500).send(err);
+            if (result.affectedRows === 0) {
+                return res.status(404).send({ message: 'Tarefa não encontrada.' });
+            }
             res.status(200).send({ message: 'Tarefa atualizada com sucesso.' });
         }
     );
@@ -70,10 +78,10 @@ exports.deleteTarefa = (req, res) => {
 }
 
 exports.getTarefaById = (req, res) => {
-    const { id } = req.body;
+    const id = parseInt(req.params.id);
 
-    if (!id) {
-        return res.status(400).send({ err: 'ID da tarefa é obrigatório.' });
+    if (isNaN(id)) {
+        return res.status(400).send({ err: 'ID da tarefa inválido.' });
     }
 
     db.query(
@@ -87,4 +95,4 @@ exports.getTarefaById = (req, res) => {
             res.status(200).send(results[0]);
         }
     );
-}
+};

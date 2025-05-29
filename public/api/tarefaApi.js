@@ -21,16 +21,19 @@ export const criarTarefa = async ({ descricao, setor, prioridade, data_cadastro 
 
 export const listarTarefas = async (usuario_id) => {
     try {
-        return await axios.get('http://localhost:3000/tarefas/', {
-            params: { usuario_id } // Usa o usuario_id passado como argumento
+        const response = await axios.get('http://localhost:3000/tarefas/', {
+            params: { usuario_id }
         });
+
+        return response.data; // ✅ apenas o array de tarefas
     } catch (err) {
         console.error('Erro ao listar tarefas:', err);
         throw err;
     }
 }
 
-export const editarTarefa = async (descricao, setor, prioridade, data_cadastro, status) => {
+
+export const editarTarefa = async (id, { descricao, setor, prioridade, data_cadastro, status }) => {
     try {
         return await axios.put(`http://localhost:3000/tarefas/${id}`, {
             descricao,
