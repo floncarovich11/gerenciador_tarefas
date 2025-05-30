@@ -39,6 +39,12 @@
             <option value="alta">Alta</option>
           </select>
 
+          <label for="selectUsuario">Usuário:</label>
+          <select id="selectUsuario">
+            <option value="">Selecione um usuário</option>
+          </select>
+
+
           <button type="submit">Salvar</button>
         </form>
       </div>
@@ -78,6 +84,19 @@
 
     <!-- Lista de Tarefas -->
     <section class="card_list">
+
+      <section class="kanban">
+        <div class="coluna" id="colunaAFazer">
+          <h2>A Fazer</h2>
+        </div>
+        <div class="coluna" id="colunaFazendo">
+          <h2>Fazendo</h2>
+        </div>
+        <div class="coluna" id="colunaPronto">
+          <h2>Pronto</h2>
+        </div>
+      </section>
+
     </section>
 
   </main>

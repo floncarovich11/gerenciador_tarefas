@@ -194,4 +194,57 @@ header > h1 {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.card .botoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
 
+.card button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  background-color: var(--color-secondary);
+  color: var(--color-text);
+}
+
+.card button:hover {
+  background-color: var(--color-primary);
+  transform: scale(1.05);
+}
+
+.card .editar-btn {
+  background-color: #388e3c; /* tom mais escuro da --color-secondary */
+}
+
+.card .editar-btn:hover {
+  background-color: var(--color-primary);
+}
+
+.card .deletar-btn {
+  background-color: #c62828; /* vermelho escuro compatível com tema */
+}
+
+.card .deletar-btn:hover {
+  background-color: #e53935;
+}
+
+
+.kanban {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.coluna {
+  border-radius: 8px;
+  flex: 1;
+  padding: 1rem;
+  min-height: 400px;
+}

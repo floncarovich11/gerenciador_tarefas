@@ -1,4 +1,5 @@
-import { criarTarefa, listarTarefas, editarTarefa } from "../api/tarefaApi.js";
+import { criarTarefa, listarTarefas, editarTarefa, deletarTarefa } from "../api/tarefaApi.js";
+import { getUsuarios } from "../api/authApi.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const modalEditar = document.getElementById("modalEditar");
@@ -6,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modalAdicionar = document.getElementById("modalAdicionar");
   const btnFecharModal = modalAdicionar.querySelector(".fechar");
   const form = document.getElementById("criarTarefaForm");
+  const selectUsuario = document.getElementById("selectUsuario");
 
   // Abrir modal de adicionar
   btnAdicionarTarefa.addEventListener("click", () => {
@@ -30,18 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    const usuario_id = localStorage.getItem("usuario_id");
+    const usuario_id = selectUsuario.value;
     const descricao = document.getElementById("inputDescricao").value.trim();
     const setor = document.getElementById("inputSetor").value.trim();
     const prioridade = document.getElementById("inputPrioridade").value.trim();
     const data_cadastro = new Date().toISOString().split("T")[0];
 
-    if (!usuario_id) {
-      alert("Erro: ID do usuário não encontrado. Faça login novamente.");
-      return;
-    }
-
-    if (!descricao || !setor || !prioridade) {
+    if (!descricao || !setor || !prioridade || !usuario_id) {
       alert("Todos os campos são obrigatórios.");
       return;
     }
@@ -58,19 +55,14 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Tarefa criada com sucesso!");
       modalAdicionar.style.display = "none";
       form.reset();
+      selectUsuario.selectedIndex = 0;
       await carregarTarefas(usuario_id);
     } catch (error) {
       console.error("Erro ao criar tarefa:", error);
       alert("Ocorreu um erro ao tentar criar a tarefa.");
     }
-  });
 
-  const usuario_id = localStorage.getItem("usuario_id");
-  if (usuario_id) {
-    carregarTarefas(usuario_id);
-  } else {
-    alert("Usuário não autenticado.");
-  }
+  });
 
   // Fechar modal de edição
   const btnFecharEditar = modalEditar.querySelector(".fechar-editar");
@@ -78,10 +70,99 @@ document.addEventListener("DOMContentLoaded", () => {
     modalEditar.style.display = "none";
   });
 
+  async function carregarUsuarios() {
+    try {
+      const response = await getUsuarios();
+      const usuarios = response.data;
+
+      usuarios.forEach((usuario) => {
+        const option = document.createElement("option");
+        option.value = usuario.id;
+        option.textContent = usuario.nome;
+        selectUsuario.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error);
+      alert("Erro ao carregar usuários.");
+    }
+  }
+
+  async function carregarTarefas(usuario_id) {
+    try {
+      const tarefas = await listarTarefas(usuario_id);
+
+      const colunas = {
+        aFazer: document.querySelector("#colunaAFazer"),
+        emAndamento: document.querySelector("#colunaFazendo"),
+        concluido: document.querySelector("#colunaPronto"),
+      };
+
+      Object.values(colunas).forEach((coluna) => {
+        coluna.innerHTML = "";
+      });
+
+      tarefas.forEach((tarefa) => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+
+        card.innerHTML = `
+          <p><strong>Descrição:</strong> <span class="descricao">${tarefa.descricao}</span></p>
+          <p><strong>Setor:</strong> <span class="setor">${tarefa.setor}</span></p>
+          <p><strong>Data de Cadastro:</strong> <span class="data">${tarefa.data_cadastro}</span></p>
+          <p><strong>Prioridade:</strong> <span class="prioridade">${tarefa.prioridade}</span></p>
+          <p><strong>Status:</strong> <span class="status">${tarefa.status}</span></p>
+          <p><strong>Responsável:</strong> ${tarefa.nome_usuario}</p>
+
+          <button class="editar-btn" data-id="${tarefa.id}">Editar</button>
+          <button class="deletar-btn" data-id="${tarefa.id}">Deletar</button>
+          
+        `;
+
+        colunas[tarefa.status]?.appendChild(card);
+
+        const btnEditar = card.querySelector(".editar-btn");
+        btnEditar.addEventListener("click", async () => {
+          try {
+            const response = await axios.get(`http://localhost:3000/tarefas/${tarefa.id}`);
+            const dados = response.data;
+
+            document.getElementById("editarId").value = dados.id;
+            document.getElementById("editarDescricao").value = dados.descricao;
+            document.getElementById("editarSetor").value = dados.setor;
+            document.getElementById("editarPrioridade").value = dados.prioridade;
+            document.getElementById("editarStatus").value = dados.status;
+
+            modalEditar.style.display = "block";
+          } catch (error) {
+            console.error("Erro ao buscar tarefa:", error);
+            alert("Erro ao buscar tarefa para edição.");
+          }
+        });
+
+        const btnDeletar = card.querySelector(".deletar-btn");
+        btnDeletar.addEventListener("click", async () => {
+          if (confirm("Você tem certeza que deseja deletar esta tarefa?")) {
+            try {
+              await deletarTarefa(tarefa.id);
+              alert("Tarefa deletada com sucesso!");
+              modalEditar.style.display = "none";
+              await carregarTarefas(selectUsuario.value);
+            } catch (error) {
+              console.error("Erro ao deletar tarefa:", error);
+              alert("Ocorreu um erro ao tentar deletar a tarefa.");
+            }
+          }
+        });
+      });
+    } catch (error) {
+      console.error("Erro ao carregar tarefas:", error);
+      alert("Erro ao carregar tarefas.");
+    }
+  }
+
   // Submissão do formulário de edição
   document.getElementById("editarTarefaForm").addEventListener("submit", async (event) => {
     event.preventDefault();
-    console.log("Submetendo formulário de edição...");
 
     const id = document.getElementById("editarId").value;
     const descricao = document.getElementById("editarDescricao").value.trim();
@@ -89,8 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const prioridade = document.getElementById("editarPrioridade").value.trim();
     const status = document.getElementById("editarStatus").value.trim();
     const data_cadastro = new Date().toISOString().split("T")[0];
-
-    console.log(id, descricao, setor, prioridade, status, data_cadastro);
 
     try {
       await editarTarefa(id, {
@@ -103,72 +182,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       alert("Tarefa editada com sucesso!");
       modalEditar.style.display = "none";
-      document.getElementById("modalEditar").style.display = "none";
-      await carregarTarefas(usuario_id);
+      await carregarTarefas(selectUsuario.value);
     } catch (error) {
       console.error("Erro ao editar tarefa:", error);
       alert("Ocorreu um erro ao tentar editar a tarefa.");
     }
   });
+
+  carregarTarefas();
+  // Inicializar com o primeiro usuário da lista após carregar usuários
+carregarUsuarios();
 });
-
-async function carregarTarefas(usuario_id) {
-  try {
-    const tarefas = await listarTarefas(usuario_id);
-    const lista = document.querySelector(".card_list");
-    lista.innerHTML = "";
-
-    tarefas.forEach((tarefa) => {
-      const card = document.createElement("div");
-      card.classList.add("card");
-
-      card.innerHTML = `
-        <p><strong>Descrição:</strong> <span class="descricao">${tarefa.descricao}</span></p>
-        <p><strong>Setor:</strong> <span class="setor">${tarefa.setor}</span></p>
-        <p><strong>Data de Cadastro:</strong> <span class="data">${tarefa.data_cadastro}</span></p>
-
-        <label><strong>Prioridade:</strong>
-          <select disabled>
-            <option value="baixa" ${tarefa.prioridade === "baixa" ? "selected" : ""}>Baixa</option>
-            <option value="media" ${tarefa.prioridade === "media" ? "selected" : ""}>Média</option>
-            <option value="alta" ${tarefa.prioridade === "alta" ? "selected" : ""}>Alta</option>
-          </select>
-        </label>
-
-        <label><strong>Status:</strong>
-          <select disabled>
-            <option value="aFazer" ${tarefa.status === "aFazer" ? "selected" : ""}>A fazer</option>
-            <option value="fazendo" ${tarefa.status === "fazendo" ? "selected" : ""}>Fazendo</option>
-            <option value="pronto" ${tarefa.status === "pronto" ? "selected" : ""}>Pronto</option>
-          </select>
-        </label>
-
-        <button class="editar-btn" data-id="${tarefa.id}">✏️ Editar</button>
-      `;
-
-      lista.appendChild(card);
-
-      const btnEditar = card.querySelector(".editar-btn");
-      btnEditar.addEventListener("click", async () => {
-        try {
-          const response = await axios.get(`http://localhost:3000/tarefas/${tarefa.id}`);
-          const dados = response.data;
-
-          document.getElementById("editarId").value = dados.id;
-          document.getElementById("editarDescricao").value = dados.descricao;
-          document.getElementById("editarSetor").value = dados.setor;
-          document.getElementById("editarPrioridade").value = dados.prioridade;
-          document.getElementById("editarStatus").value = dados.status;
-
-          modalEditar.style.display = "block";
-        } catch (error) {
-          console.error("Erro ao buscar tarefa:", error);
-          alert("Erro ao buscar tarefa para edição.");
-        }
-      });
-    });
-  } catch (error) {
-    console.error("Erro ao carregar tarefas:", error);
-    alert("Erro ao carregar tarefas.");
-  }
-}

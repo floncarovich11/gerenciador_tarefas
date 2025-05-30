@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await register(nome, email, senha);
             if (response.data) {
                 alert("Cadastro realizado com sucesso!");
-                window.location.href = "../login/login.html"; // Redireciona para a página de login após o cadastro
+                window.location.href = "../board/board.html"; // Redireciona para a página de login após o cadastro
             } else {
                 alert("Erro ao cadastrar: " + response.message);
             }

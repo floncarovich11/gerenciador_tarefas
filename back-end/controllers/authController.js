@@ -36,5 +36,15 @@ exports.login = (req, res) => {
             });
         }
     )
-} 
+};
 
+exports.getUsuarios = (req, res) => {
+    db.query('SELECT id, nome FROM usuarios', (err, results) => {
+      if (err) {
+        return res.status(500).send({ error: 'Erro ao buscar usuários.' });
+      }
+  
+      res.status(200).send(results);
+    });
+  };
+  

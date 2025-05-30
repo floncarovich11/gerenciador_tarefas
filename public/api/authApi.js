@@ -22,3 +22,12 @@ export const register = async (nome, email, senha) => {
         throw err;
     }
 }
+
+export const getUsuarios = async () => {
+    try {
+        return await axios.get('http://localhost:3000/auth/usuarios');
+    } catch (err) {
+        console.error('Erro ao buscar usuários:', err);
+        throw err;
+    }
+}

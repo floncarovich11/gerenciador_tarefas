@@ -22,18 +22,23 @@ exports.createTarefa = (req, res) => {
 
 exports.getTarefas = (req, res) => {
     const { usuario_id } = req.query;
-    if (!usuario_id) {
-        return res.status(400).send({ err: 'ID do usuário é obrigatório.' });
+
+    let query = 'SELECT tarefas.*, usuarios.nome as nome_usuario FROM tarefas LEFT JOIN usuarios ON tarefas.usuario_id = usuarios.id';
+    let params = [];
+
+    if (usuario_id) {
+        query += ' WHERE usuario_id = ?';
+        params.push(usuario_id);
     }
-    db.query(
-        'SELECT * FROM tarefas WHERE usuario_id = ? ORDER BY data_cadastro DESC',
-        [usuario_id],
-        (err, results) => {
-            if (err) return res.status(500).send(err);
-            res.status(200).send(results);
-        }
-    );
-}
+
+    query += ' ORDER BY data_cadastro DESC';
+
+    db.query(query, params, (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.status(200).send(results);
+    });
+};
+
 
 exports.updateTarefa = (req, res) => {
     const { descricao, setor, prioridade, data_cadastro, status } = req.body;
